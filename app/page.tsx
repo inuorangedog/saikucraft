@@ -3,6 +3,7 @@ import { createClient } from '@/app/lib/supabase-server'
 import CreatorCard from './creators/_components/creator-card'
 import ListingCard from './listings/_components/listing-card'
 import { getUpcomingEvents } from '@/app/lib/events'
+import { getShowcases } from '@/app/showcase/actions'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -111,6 +112,9 @@ export default async function HomePage() {
       }
     })
   )
+
+  // ショーケース
+  const showcaseItems = await getShowcases(8)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -306,6 +310,79 @@ export default async function HomePage() {
           )}
         </div>
       </section>
+
+      {/* ショーケース */}
+      {showcaseItems.length > 0 && (
+        <section className="border-t border-zinc-200 dark:border-zinc-800">
+          <div className="mx-auto max-w-5xl px-4 py-16">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">ショーケース</h2>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">クリエイターの納品実績</p>
+              </div>
+              <Link href="/showcase" className="text-sm font-medium text-orange-500 hover:text-orange-600">
+                もっと見る →
+              </Link>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {showcaseItems.map((item) => (
+                <div key={item.id} className="group overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                  {/* メディア */}
+                  <div className="aspect-square overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                    {item.media_type === 'image' && (
+                      <img
+                        src={item.media_url}
+                        alt={item.caption || 'ショーケース'}
+                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    )}
+                    {item.media_type === 'video' && (
+                      <video
+                        src={item.media_url}
+                        muted
+                        playsInline
+                        onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
+                        onMouseOut={(e) => { (e.target as HTMLVideoElement).pause(); (e.target as HTMLVideoElement).currentTime = 0 }}
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                    {item.media_type === 'audio' && (
+                      <div className="flex h-full flex-col items-center justify-center gap-3 p-4">
+                        <svg className="h-12 w-12 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                        </svg>
+                        <audio src={item.media_url} controls className="w-full" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* クリエイター情報 */}
+                  <div className="p-3">
+                    <Link href={`/creators/${item.creator_id}`} className="flex items-center gap-2">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600 dark:bg-orange-900 dark:text-orange-300">
+                        {item.creator_avatar_url ? (
+                          <img src={item.creator_avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
+                        ) : (
+                          item.creator_username.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <span className="truncate text-xs font-medium text-zinc-700 hover:text-orange-500 dark:text-zinc-300">
+                        {item.creator_username}
+                      </span>
+                    </Link>
+                    {item.caption && (
+                      <p className="mt-1 line-clamp-2 text-xs text-zinc-500 dark:text-zinc-400">
+                        {item.caption}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* フッター */}
       <footer className="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">

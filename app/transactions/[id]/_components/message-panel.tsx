@@ -21,6 +21,7 @@ type Props = {
   clientName: string
   creatorId: string
   clientId: string
+  disabled?: boolean
 }
 
 export default function MessagePanel({
@@ -31,6 +32,7 @@ export default function MessagePanel({
   clientName,
   creatorId,
   clientId,
+  disabled = false,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState('')
@@ -145,6 +147,13 @@ export default function MessagePanel({
       </div>
 
       {/* 入力欄 */}
+      {disabled ? (
+        <div className="shrink-0 border-t border-zinc-200 p-4 text-center dark:border-zinc-700">
+          <p className="text-sm text-zinc-400 dark:text-zinc-500">
+            両者の事前確認が完了するまでメッセージを送信できません
+          </p>
+        </div>
+      ) : (
       <div className="shrink-0 border-t border-zinc-200 p-3 dark:border-zinc-700">
         {/* 添付画像プレビュー */}
         {imageUrls.length > 0 && (
@@ -205,6 +214,7 @@ export default function MessagePanel({
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }

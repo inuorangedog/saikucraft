@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
           senderId: pi.metadata.sender_id,
           receiverId: pi.metadata.receiver_id,
           amount: pi.amount,
+          message: pi.metadata.boost_message || undefined,
         })
       } else {
         // 通常の仮払い完了

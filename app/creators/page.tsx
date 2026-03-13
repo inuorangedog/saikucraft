@@ -32,6 +32,7 @@ export default async function CreatorsPage({ searchParams }: Props) {
   const tagFilter = params.tags?.split(',').filter(Boolean) || []
   const eventFilter = params.event || ''
   const specialtyFilter = params.specialty || ''
+  const keyword = params.q?.trim() || ''
 
   const supabase = await createClient()
   const allTags = await getAllTags()
@@ -68,6 +69,26 @@ export default async function CreatorsPage({ searchParams }: Props) {
   }
   if (blockedIds.length > 0) {
     query = query.not('user_id', 'in', `(${blockedIds.join(',')})`)
+  }
+
+  // キーワード検索（ユーザー名 or 自己紹介）
+  if (keyword) {
+    // プロフィールテーブルからユーザー名で検索
+    const { data: matchedProfiles } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .ilike('username', `%${keyword}%`)
+      .is('deleted_at', null)
+
+    const matchedUserIds = new Set((matchedProfiles || []).map((p) => p.user_id))
+
+    // bio検索 OR ユーザー名検索
+    // bioはcreator_profilesにあるのでilike可能、ユーザー名一致はuser_id inで
+    if (matchedUserIds.size > 0) {
+      query = query.or(`bio.ilike.%${keyword}%,user_id.in.(${[...matchedUserIds].join(',')})`)
+    } else {
+      query = query.ilike('bio', `%${keyword}%`)
+    }
   }
 
   // タグフィルター（OR検索：指定タグのいずれかを持つクリエイター）

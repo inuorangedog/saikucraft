@@ -35,6 +35,7 @@ export default function NotificationList({ notifications: initial }: { notificat
         setNotifications((prev) =>
           prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
         )
+        router.refresh()
       })
     }
 
@@ -51,6 +52,7 @@ export default function NotificationList({ notifications: initial }: { notificat
       const result = await markAllAsRead()
       if ('success' in result) {
         setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+        router.refresh()
       }
     })
   }

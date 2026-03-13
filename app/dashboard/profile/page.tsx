@@ -15,7 +15,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, user_type, avatar_url')
+    .select('username, user_type, avatar_url, bio, twitter_url, pixiv_url, misskey_url, invoice_number')
     .eq('user_id', user.id)
     .single()
 
@@ -25,7 +25,7 @@ export default async function ProfilePage() {
 
   const { data: creatorProfile } = await supabase
     .from('creator_profiles')
-    .select('bio, status, call_ok, max_revisions, ng_content, is_r18_ok, is_commercial_ok, is_urgent_ok, twitter_url, pixiv_url, misskey_url')
+    .select('bio, status, call_ok, max_revisions, default_max_detailed_revisions, default_max_final_revisions, revision_policy, ng_content, is_r18_ok, is_commercial_ok, is_urgent_ok, twitter_url, pixiv_url, misskey_url')
     .eq('user_id', user.id)
     .single()
 

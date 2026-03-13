@@ -16,7 +16,7 @@ export default async function TransactionPage({ params }: Props) {
   // 取引を取得
   const { data: tx } = await supabase
     .from('transactions')
-    .select('id, status, amount, deadline, revision_count, max_revisions, delivered_at, auto_approve_at, wants_copyright_transfer, wants_portfolio_ban, wants_commercial_use, delivery_file_url, delivery_file_name, created_at, creator_id, client_id, payment_status, stripe_payment_intent_id')
+    .select('id, status, amount, deadline, revision_count, max_revisions, detailed_revision_count, max_detailed_revisions, final_revision_count, max_final_revisions, delivered_at, auto_approve_at, wants_copyright_transfer, wants_portfolio_ban, wants_commercial_use, delivery_file_url, delivery_file_name, allow_showcase, created_at, creator_id, client_id, payment_status, stripe_payment_intent_id, creator_agreed, client_agreed')
     .eq('id', id)
     .single()
 
@@ -36,6 +36,13 @@ export default async function TransactionPage({ params }: Props) {
   const profileMap = new Map((profiles || []).map((p) => [p.user_id, p.username]))
   const creatorName = profileMap.get(tx.creator_id) || '不明'
   const clientName = profileMap.get(tx.client_id) || '不明'
+
+  // クリエイターの修正ポリシーを取得
+  const { data: creatorProfile } = await supabase
+    .from('creator_profiles')
+    .select('revision_policy')
+    .eq('user_id', tx.creator_id)
+    .single()
 
   // BOOST状態を確認
   let alreadyBoosted = false
@@ -65,6 +72,7 @@ export default async function TransactionPage({ params }: Props) {
         creatorName={creatorName}
         clientName={clientName}
         alreadyBoosted={alreadyBoosted}
+        revisionPolicy={creatorProfile?.revision_policy || null}
       />
     </div>
   )

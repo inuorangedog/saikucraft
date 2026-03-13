@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const { data: approveTargets } = await supabase
     .from('transactions')
     .select('id, amount, creator_id, client_id, stripe_payment_intent_id, payment_status')
-    .eq('status', '納品済み')
+    .eq('status', '納品・検収')
     .eq('payment_status', 'paid')
     .lte('auto_approve_at', now)
 
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
   const { data: refundTargets } = await supabase
     .from('transactions')
     .select('id, amount, creator_id, client_id, stripe_payment_intent_id, payment_status')
-    .in('status', ['取引開始', 'ラフ提出待ち', 'ラフ確認中', '詳細ラフ確認中', '着手済み'])
+    .in('status', ['取引開始', 'ラフ提出待ち', 'ラフ確認中', '詳細ラフ提出待ち', '詳細ラフ確認中', '着手済み', '完成品制作中', '完成品確認中'])
     .eq('payment_status', 'paid')
     .not('auto_refund_at', 'is', null)
     .lte('auto_refund_at', now)

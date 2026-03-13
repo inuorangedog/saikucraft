@@ -7,6 +7,11 @@ export async function updateProfile(data: {
   username: string
   userType: 'client' | 'creator' | 'both'
   avatarUrl?: string
+  bio?: string
+  twitterUrl?: string
+  pixivUrl?: string
+  misskeyUrl?: string
+  invoiceNumber?: string
 }): Promise<{ error: string } | { success: true }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -15,6 +20,11 @@ export async function updateProfile(data: {
   const updateData: Record<string, unknown> = {
     username: data.username.trim(),
     user_type: data.userType,
+    bio: data.bio?.trim() || null,
+    twitter_url: data.twitterUrl?.trim() || null,
+    pixiv_url: data.pixivUrl?.trim() || null,
+    misskey_url: data.misskeyUrl?.trim() || null,
+    invoice_number: data.invoiceNumber?.trim() || null,
   }
   if (data.avatarUrl !== undefined) {
     updateData.avatar_url = data.avatarUrl
@@ -34,6 +44,9 @@ export async function updateCreatorProfile(data: {
   status: '受付中' | '停止中'
   callOk: '不可' | '可' | '要相談'
   maxRevisions: number
+  maxDetailedRevisions: number
+  maxFinalRevisions: number
+  revisionPolicy: string
   ngContent: string
   isR18Ok: boolean
   isCommercialOk: boolean
@@ -59,6 +72,9 @@ export async function updateCreatorProfile(data: {
     status: data.status,
     call_ok: data.callOk,
     max_revisions: data.maxRevisions,
+    default_max_detailed_revisions: data.maxDetailedRevisions,
+    default_max_final_revisions: data.maxFinalRevisions,
+    revision_policy: data.revisionPolicy?.trim() || null,
     ng_content: data.ngContent || null,
     is_r18_ok: data.isR18Ok,
     is_commercial_ok: data.isCommercialOk,

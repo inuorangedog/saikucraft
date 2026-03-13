@@ -15,6 +15,11 @@ type Profile = {
   username: string
   user_type: string
   avatar_url: string | null
+  bio: string | null
+  twitter_url: string | null
+  pixiv_url: string | null
+  misskey_url: string | null
+  invoice_number: string | null
 }
 
 type CreatorProfile = {
@@ -22,6 +27,9 @@ type CreatorProfile = {
   status: string
   call_ok: string
   max_revisions: number
+  default_max_detailed_revisions: number
+  default_max_final_revisions: number
+  revision_policy: string | null
   ng_content: string | null
   is_r18_ok: boolean
   is_commercial_ok: boolean
@@ -68,21 +76,26 @@ export default function ProfileEditForm({ profile, creatorProfile, allTags, init
   const [username, setUsername] = useState(profile.username)
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '')
   const [userType, setUserType] = useState(profile.user_type as 'client' | 'creator' | 'both')
+  const [profileBio, setProfileBio] = useState(profile.bio ?? '')
+  const [profileTwitter, setProfileTwitter] = useState(profile.twitter_url ?? '')
+  const [profilePixiv, setProfilePixiv] = useState(profile.pixiv_url ?? '')
+  const [profileMisskey, setProfileMisskey] = useState(profile.misskey_url ?? '')
+  const [invoiceNumber, setInvoiceNumber] = useState(profile.invoice_number ?? '')
 
   // クリエイター情報
   const [bio, setBio] = useState(creatorProfile?.bio ?? '')
   const [status, setStatus] = useState<'受付中' | '停止中'>((creatorProfile?.status as '受付中' | '停止中') ?? '停止中')
   const [callOk, setCallOk] = useState<'不可' | '可' | '要相談'>((creatorProfile?.call_ok as '不可' | '可' | '要相談') ?? '不可')
   const [maxRevisions, setMaxRevisions] = useState(creatorProfile?.max_revisions ?? 3)
+  const [maxDetailedRevisions, setMaxDetailedRevisions] = useState(creatorProfile?.default_max_detailed_revisions ?? 2)
+  const [maxFinalRevisions, setMaxFinalRevisions] = useState(creatorProfile?.default_max_final_revisions ?? 1)
+  const [revisionPolicy, setRevisionPolicy] = useState(creatorProfile?.revision_policy ?? '')
   const [ngContent, setNgContent] = useState(creatorProfile?.ng_content ?? '')
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(initialTagIds)
   const [isR18Ok, setIsR18Ok] = useState(creatorProfile?.is_r18_ok ?? false)
   const [isCommercialOk, setIsCommercialOk] = useState(creatorProfile?.is_commercial_ok ?? false)
   const [isUrgentOk, setIsUrgentOk] = useState(creatorProfile?.is_urgent_ok ?? false)
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>(initialEventIds)
-  const [twitterUrl, setTwitterUrl] = useState(creatorProfile?.twitter_url ?? '')
-  const [pixivUrl, setPixivUrl] = useState(creatorProfile?.pixiv_url ?? '')
-  const [misskeyUrl, setMisskeyUrl] = useState(creatorProfile?.misskey_url ?? '')
   const [selectedSpecialtyIds, setSelectedSpecialtyIds] = useState<string[]>(initialSpecialtyIds)
 
   const showCreatorSection = userType === 'creator' || userType === 'both'
@@ -92,7 +105,16 @@ export default function ProfileEditForm({ profile, creatorProfile, allTags, init
       setError('')
       setSuccess('')
 
-      const profileResult = await updateProfile({ username, userType, avatarUrl: avatarUrl || undefined })
+      const profileResult = await updateProfile({
+        username,
+        userType,
+        avatarUrl: avatarUrl || undefined,
+        bio: profileBio,
+        twitterUrl: profileTwitter,
+        pixivUrl: profilePixiv,
+        misskeyUrl: profileMisskey,
+        invoiceNumber,
+      })
       if ('error' in profileResult) {
         setError(profileResult.error)
         return
@@ -104,13 +126,16 @@ export default function ProfileEditForm({ profile, creatorProfile, allTags, init
           status,
           callOk,
           maxRevisions,
+          maxDetailedRevisions,
+          maxFinalRevisions,
+          revisionPolicy,
           ngContent,
           isR18Ok,
           isCommercialOk,
           isUrgentOk,
-          twitterUrl,
-          pixivUrl,
-          misskeyUrl,
+          twitterUrl: profileTwitter,
+          pixivUrl: profilePixiv,
+          misskeyUrl: profileMisskey,
         })
         if ('error' in creatorResult) {
           setError(creatorResult.error)
@@ -220,6 +245,77 @@ export default function ProfileEditForm({ profile, creatorProfile, allTags, init
         </div>
       </section>
 
+      {/* 共通プロフィール */}
+      <section className="space-y-4 border-t border-zinc-200 pt-8 dark:border-zinc-700">
+        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">プロフィール情報</h2>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            自己紹介
+          </label>
+          <textarea
+            value={profileBio}
+            onChange={(e) => setProfileBio(e.target.value)}
+            rows={4}
+            placeholder="あなたについて教えてください。依頼者の場合、どんな作品を求めているかなどを書くとクリエイターに伝わりやすくなります。"
+            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          />
+        </div>
+
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            外部リンク
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="w-16 shrink-0 text-xs text-zinc-500">X (Twitter)</span>
+            <input
+              type="url"
+              value={profileTwitter}
+              onChange={(e) => setProfileTwitter(e.target.value)}
+              placeholder="https://x.com/username"
+              className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-16 shrink-0 text-xs text-zinc-500">pixiv</span>
+            <input
+              type="url"
+              value={profilePixiv}
+              onChange={(e) => setProfilePixiv(e.target.value)}
+              placeholder="https://www.pixiv.net/users/12345"
+              className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-16 shrink-0 text-xs text-zinc-500">Misskey</span>
+            <input
+              type="url"
+              value={profileMisskey}
+              onChange={(e) => setProfileMisskey(e.target.value)}
+              placeholder="https://misskey.io/@username"
+              className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            インボイス登録番号（任意）
+          </label>
+          <p className="mt-0.5 text-xs text-zinc-400">
+            適格請求書発行事業者の場合、登録番号を入力すると取引相手に表示されます。
+          </p>
+          <input
+            type="text"
+            value={invoiceNumber}
+            onChange={(e) => setInvoiceNumber(e.target.value)}
+            placeholder="T1234567890123"
+            maxLength={14}
+            className="mt-1 w-64 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          />
+        </div>
+      </section>
+
       {/* クリエイター情報 */}
       {showCreatorSection && (
         <section className="space-y-4 border-t border-zinc-200 pt-8 dark:border-zinc-700">
@@ -277,17 +373,61 @@ export default function ProfileEditForm({ profile, creatorProfile, allTags, init
             </div>
           </div>
 
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              修正回数上限（段階別）
+            </label>
+            <p className="text-xs text-zinc-400">取引作成時のデフォルト値になります。取引ごとに追加も可能です。</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs text-zinc-500 dark:text-zinc-400">ラフ</label>
+                <input
+                  type="number"
+                  value={maxRevisions}
+                  onChange={(e) => setMaxRevisions(parseInt(e.target.value) || 0)}
+                  min={0}
+                  max={99}
+                  className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-zinc-500 dark:text-zinc-400">詳細ラフ</label>
+                <input
+                  type="number"
+                  value={maxDetailedRevisions}
+                  onChange={(e) => setMaxDetailedRevisions(parseInt(e.target.value) || 0)}
+                  min={0}
+                  max={99}
+                  className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-zinc-500 dark:text-zinc-400">完成品</label>
+                <input
+                  type="number"
+                  value={maxFinalRevisions}
+                  onChange={(e) => setMaxFinalRevisions(parseInt(e.target.value) || 0)}
+                  min={0}
+                  max={99}
+                  className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              修正回数上限
+              修正ポリシー
             </label>
-            <input
-              type="number"
-              value={maxRevisions}
-              onChange={(e) => setMaxRevisions(parseInt(e.target.value) || 0)}
-              min={0}
-              max={99}
-              className="mt-1 w-24 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            <p className="text-xs text-zinc-400 mt-0.5">
+              「修正」の定義や範囲を依頼者に伝えるための補足説明です。取引開始前の確認画面に表示されます。
+            </p>
+            <textarea
+              value={revisionPolicy}
+              onChange={(e) => setRevisionPolicy(e.target.value)}
+              rows={3}
+              placeholder="例：色味の微調整は修正回数に含みません。構図の大幅変更は追加料金が発生する場合があります。"
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
             />
           </div>
 
@@ -360,42 +500,6 @@ export default function ProfileEditForm({ profile, creatorProfile, allTags, init
               />
               <span className="text-sm text-zinc-700 dark:text-zinc-300">急ぎ対応可</span>
             </label>
-          </div>
-          {/* 外部リンク */}
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              外部リンク
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="w-16 shrink-0 text-xs text-zinc-500">X (Twitter)</span>
-              <input
-                type="url"
-                value={twitterUrl}
-                onChange={(e) => setTwitterUrl(e.target.value)}
-                placeholder="https://x.com/username"
-                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-16 shrink-0 text-xs text-zinc-500">pixiv</span>
-              <input
-                type="url"
-                value={pixivUrl}
-                onChange={(e) => setPixivUrl(e.target.value)}
-                placeholder="https://www.pixiv.net/users/12345"
-                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-16 shrink-0 text-xs text-zinc-500">Misskey</span>
-              <input
-                type="url"
-                value={misskeyUrl}
-                onChange={(e) => setMisskeyUrl(e.target.value)}
-                placeholder="https://misskey.io/@username"
-                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-orange-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-            </div>
           </div>
         </section>
       )}

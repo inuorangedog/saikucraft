@@ -7,6 +7,23 @@ type Props = {
   onUploaded: (data: { url: string; fileName: string; key: string }) => void
 }
 
+async function saveDeliveryFile(
+  transactionId: string,
+  data: { url: string; fileName: string; key: string }
+) {
+  const res = await fetch('/api/save-delivery', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      transactionId,
+      deliveryFileUrl: data.url,
+      deliveryFileName: data.fileName,
+      deliveryFileKey: data.key,
+    }),
+  })
+  return res.ok
+}
+
 export default function DeliveryUpload({ transactionId, onUploaded }: Props) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -83,7 +100,17 @@ export default function DeliveryUpload({ transactionId, onUploaded }: Props) {
 
       await uploadWithRetry(1)
 
-      onUploaded({ url: data.publicUrl, fileName: file.name, key: data.key })
+      const fileData = { url: data.publicUrl, fileName: file.name, key: data.key }
+
+      // R2アップロード完了後、即座にDBに保存
+      const saved = await saveDeliveryFile(transactionId, fileData)
+      if (!saved) {
+        setError('ファイル情報の保存に失敗しました')
+        setUploading(false)
+        return
+      }
+
+      onUploaded(fileData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'アップロードに失敗しました')
     } finally {
@@ -103,7 +130,7 @@ export default function DeliveryUpload({ transactionId, onUploaded }: Props) {
       <input
         ref={inputRef}
         type="file"
-        accept=".zip,.psd,.png,.jpg,.jpeg,.webp"
+        accept=".zip,.rar,.7z,.psd,.ai,.eps,.pdf,.indd,.clip,.lip,.sai,.sai2,.mdp,.kra,.xcf,.procreate,.png,.jpg,.jpeg,.webp,.gif,.bmp,.tiff,.tif,.svg,.doc,.docx,.txt,.rtf"
         onChange={handleFileChange}
         disabled={uploading}
         className="hidden"
@@ -114,7 +141,7 @@ export default function DeliveryUpload({ transactionId, onUploaded }: Props) {
         disabled={uploading}
         className="w-full rounded-lg border-2 border-dashed border-zinc-300 py-4 text-sm text-zinc-500 hover:border-orange-400 hover:text-orange-500 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-400"
       >
-        {uploading ? 'アップロード中...' : '納品ファイルを選択（ZIP, PSD, PNG 最大1GB）'}
+        {uploading ? 'アップロード中...' : '納品ファイルを選択（ZIP, PSD, CLIP, AI, DOCX等 最大1GB）'}
       </button>
 
       {uploading && (

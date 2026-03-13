@@ -135,6 +135,12 @@ export default function DashboardClient({
       {/* アカウント設定 */}
       <div className="flex justify-end gap-4">
         <Link
+          href="/dashboard/history"
+          className="text-xs text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+        >
+          取引履歴・明細
+        </Link>
+        <Link
           href="/dashboard/blocks"
           className="text-xs text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
         >

@@ -19,7 +19,7 @@ export async function checkCanWithdraw(): Promise<{
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { canWithdraw: false, activeTransactionCount: 0 }
 
-  const activeStatuses = ['取引開始', 'ラフ提出待ち', 'ラフ確認中', '詳細ラフ確認中', '着手済み', '納品済み']
+  const activeStatuses = ['取引開始', 'ラフ提出待ち', 'ラフ確認中', '詳細ラフ提出待ち', '詳細ラフ確認中', '着手済み', '完成品制作中', '完成品確認中', '納品・検収']
 
   // クリエイターとして進行中
   const { count: creatorActive } = await supabase

@@ -200,6 +200,13 @@ export async function updateNegotiationStatus(
 
     if (!finalBudget) return { error: '予算が設定されていません。交渉メッセージで予算を提案してください' }
 
+    // クリエイターの修正回数設定を取得
+    const { data: creatorProfile } = await supabase
+      .from('creator_profiles')
+      .select('default_max_rough_revisions, default_max_detailed_revisions, default_max_final_revisions')
+      .eq('user_id', neg.creator_id)
+      .single()
+
     const { data: tx, error: txError } = await supabase
       .from('transactions')
       .insert({
@@ -211,6 +218,9 @@ export async function updateNegotiationStatus(
         wants_copyright_transfer: neg.wants_copyright_transfer ?? false,
         wants_portfolio_ban: neg.wants_portfolio_ban ?? false,
         wants_commercial_use: neg.wants_commercial_use ?? false,
+        max_revisions: creatorProfile?.default_max_rough_revisions ?? 3,
+        max_detailed_revisions: creatorProfile?.default_max_detailed_revisions ?? 2,
+        max_final_revisions: creatorProfile?.default_max_final_revisions ?? 2,
       })
       .select('id')
       .single()

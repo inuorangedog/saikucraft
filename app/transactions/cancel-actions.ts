@@ -15,10 +15,13 @@ function getRefundPercent(status: string): number {
     case 'ラフ提出待ち':
       return 100
     case 'ラフ確認中':
+    case '詳細ラフ提出待ち':
     case '詳細ラフ確認中':
       return 50
     case '着手済み':
-    case '納品済み':
+    case '完成品制作中':
+    case '完成品確認中':
+    case '納品・検収':
       return 0
     default:
       return 0

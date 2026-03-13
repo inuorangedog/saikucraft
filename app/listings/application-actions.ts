@@ -97,6 +97,13 @@ export async function acceptApplication(
     .update({ status: '採用' })
     .eq('id', applicationId)
 
+  // クリエイターの修正回数設定を取得
+  const { data: creatorProfile } = await supabase
+    .from('creator_profiles')
+    .select('default_max_rough_revisions, default_max_detailed_revisions, default_max_final_revisions')
+    .eq('user_id', app.creator_id)
+    .single()
+
   // 取引を作成
   const { data: tx, error: txError } = await supabase
     .from('transactions')
@@ -106,6 +113,9 @@ export async function acceptApplication(
       client_id: user.id,
       amount,
       deadline: listing.deadline || null,
+      max_revisions: creatorProfile?.default_max_rough_revisions ?? 3,
+      max_detailed_revisions: creatorProfile?.default_max_detailed_revisions ?? 2,
+      max_final_revisions: creatorProfile?.default_max_final_revisions ?? 2,
     })
     .select('id')
     .single()

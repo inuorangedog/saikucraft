@@ -3,19 +3,22 @@ import { createClient } from '@/app/lib/supabase-server'
 import { getUploadUrl, getPublicUrl } from '@/app/lib/r2'
 import { v4 as uuidv4 } from 'uuid'
 
-const ALLOWED_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/psd',
-  'application/zip',
-  'application/x-zip-compressed',
-  'application/octet-stream', // PSD等のバイナリ
-  'application/x-photoshop',
-  'application/photoshop',
+const ALLOWED_EXTENSIONS = [
+  // 画像
+  'jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'tif', 'svg',
+  // Adobe
+  'psd', 'ai', 'eps', 'pdf', 'indd',
+  // CLIP STUDIO
+  'clip', 'lip',
+  // SAI
+  'sai', 'sai2',
+  // その他ペイントツール
+  'mdp', 'kra', 'xcf', 'procreate',
+  // ドキュメント
+  'doc', 'docx', 'txt', 'rtf',
+  // アーカイブ
+  'zip', 'rar', '7z',
 ]
-
-const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'psd', 'zip']
 const MAX_SIZE = 1024 * 1024 * 1024 // 1GB
 
 export async function POST(req: NextRequest) {
@@ -46,14 +49,15 @@ export async function POST(req: NextRequest) {
   if (tx.creator_id !== user.id) {
     return NextResponse.json({ error: 'クリエイターのみがアップロードできます' }, { status: 403 })
   }
-  if (tx.status !== '着手済み') {
+  const deliveryStatuses = ['納品・検収', '完成品制作中', '完成品確認中']
+  if (!deliveryStatuses.includes(tx.status)) {
     return NextResponse.json({ error: '納品可能なステータスではありません' }, { status: 400 })
   }
 
   // ファイル拡張子チェック
   const ext = fileName.split('.').pop()?.toLowerCase() || ''
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
-    return NextResponse.json({ error: `対応していないファイル形式です（${ALLOWED_EXTENSIONS.join(', ')}）` }, { status: 400 })
+    return NextResponse.json({ error: '対応していないファイル形式です。ZIPにまとめてアップロードしてください。' }, { status: 400 })
   }
 
   if (fileSize > MAX_SIZE) {

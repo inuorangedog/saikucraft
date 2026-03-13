@@ -31,7 +31,7 @@ export default async function UserProfilePage({ params }: Props) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, avatar_url, user_type, created_at')
+    .select('username, avatar_url, user_type, created_at, bio, twitter_url, pixiv_url, misskey_url, invoice_number')
     .eq('user_id', id)
     .is('deleted_at', null)
     .single()
@@ -102,6 +102,59 @@ export default async function UserProfilePage({ params }: Props) {
           >
             クリエイターとしてのプロフィールを見る →
           </Link>
+        )}
+
+        {/* 自己紹介 */}
+        {profile.bio && (
+          <div className="mt-6">
+            <p className="whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
+              {profile.bio}
+            </p>
+          </div>
+        )}
+
+        {/* 外部リンク */}
+        {(profile.twitter_url || profile.pixiv_url || profile.misskey_url) && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {profile.twitter_url && (
+              <a
+                href={profile.twitter_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                X (Twitter)
+              </a>
+            )}
+            {profile.pixiv_url && (
+              <a
+                href={profile.pixiv_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                pixiv
+              </a>
+            )}
+            {profile.misskey_url && (
+              <a
+                href={profile.misskey_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                Misskey
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* インボイス登録番号 */}
+        {profile.invoice_number && (
+          <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 dark:border-zinc-700 dark:bg-zinc-900">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">インボイス登録番号</p>
+            <p className="mt-0.5 text-sm font-mono font-medium text-zinc-900 dark:text-zinc-50">{profile.invoice_number}</p>
+          </div>
         )}
 
         {/* 依頼者統計 */}

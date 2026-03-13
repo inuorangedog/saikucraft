@@ -6,7 +6,8 @@ import { createNotification } from '@/app/lib/notifications'
 
 export async function sendBoost(
   transactionId: string,
-  amount: number
+  amount: number,
+  message?: string
 ): Promise<{ error: string } | { clientSecret: string }> {
   try {
     const supabase = await createClient()
@@ -54,6 +55,7 @@ export async function sendBoost(
         transaction_id: tx.id,
         sender_id: user.id,
         receiver_id: tx.creator_id,
+        ...(message ? { boost_message: message.slice(0, 500) } : {}),
       },
     })
 
@@ -70,11 +72,13 @@ export async function completeBoost({
   senderId,
   receiverId,
   amount,
+  message,
 }: {
   transactionId: string
   senderId: string
   receiverId: string
   amount: number
+  message?: string
 }) {
   const { createClient: createAdminClient } = await import('@supabase/supabase-js')
   const supabase = createAdminClient(
@@ -88,6 +92,7 @@ export async function completeBoost({
     sender_id: senderId,
     receiver_id: receiverId,
     amount,
+    ...(message ? { message } : {}),
   })
 
   // クリエイターのStripeアカウントに送金（手数料7%控除）
@@ -117,6 +122,7 @@ export async function completeBoost({
     userId: receiverId,
     type: 'boost_received',
     title: `¥${amount.toLocaleString()}のBOOSTを受け取りました！`,
+    body: message || undefined,
     relatedId: transactionId,
   })
 }
